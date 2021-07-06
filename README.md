@@ -9,10 +9,6 @@ This directory contains a simple "Rick and Morty Cards" example based on `react-
 
 **Clone the repository:**
 
-```sh
-git clone https://github.com/ffcabbar/react-apollo-client-example
-```
-
 **Install dependencies and run the app:**
 
 ```sh

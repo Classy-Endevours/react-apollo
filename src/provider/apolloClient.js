@@ -6,8 +6,18 @@ import {
   HttpLink,
   from,
 } from "@apollo/client";
-import { onError } from "@apollo/client/link/error";
-// import { onError } from "apollo-link-error";
+import { onError } from "apollo-link-error";
+import { fromPromise } from "apollo-link";
+
+let apolloClient;
+const getNewToken = () => {
+  return apolloClient.query({ query: '' }).then((response) => {
+    // extract your accessToken from your response data and return it
+    const { accessToken } = response.data;
+    return accessToken;
+  });
+};
+
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
     console.log({ graphQLErrors, networkError });
@@ -20,15 +30,27 @@ const errorLink = onError(
             // when AuthenticationError thrown in resolver
 
             // modify the operation context with a new token
-            const oldHeaders = operation.getContext().headers;
-            operation.setContext({
-              headers: {
-                ...oldHeaders,
-                authorization: () => {},
-              },
-            });
-            // retry the request, returning the new observable
-            return forward(operation);
+            fromPromise(
+              getNewToken().catch((error) => {
+                // Handle token refresh errors e.g clear stored tokens, redirect to login
+                return;
+              })
+            )
+              .filter((value) => Boolean(value))
+              .flatMap((accessToken) => {
+                const oldHeaders = operation.getContext().headers;
+                // modify the operation context with a new token
+                operation.setContext({
+                  headers: {
+                    ...oldHeaders,
+                    authorization: `Bearer ${accessToken}`,
+                  },
+                });
+
+                // retry the request, returning the new observable
+                return forward(operation);
+              });
+              break;
           default:
             return null;
         }

@@ -8,12 +8,13 @@ import {
   Container,
   Navbar,
   NavbarBrand,
+  Spinner,
 } from "reactstrap";
 import { useMutation } from "@apollo/client";
 import { useHistory } from "react-router";
 import Logo from "../../rickandmorty.png";
 import { LOGIN_MUTATION } from "./mutation";
-import { AUTH_TOKEN } from "../../constant/app";
+import { AUTH_TOKEN, LOGIN_STATUS } from "../../constant/app";
 
 export default function Login(props) {
   const history = useHistory();
@@ -21,16 +22,25 @@ export default function Login(props) {
     email: "",
     password: "",
   });
-  const [login, {error}] = useMutation(LOGIN_MUTATION);
+  const [login, {error, loading, data}] = useMutation(LOGIN_MUTATION, {
+    onCompleted(data) {
+      console.log(data);
+      localStorage.setItem(AUTH_TOKEN, data.login.token);
+      localStorage.setItem(LOGIN_STATUS, true);
+      history.push("/");
+    }
+  });
   const submit = () => {
     login({
       variables: formState,
-      onCompleted: ({ login }) => {
-        localStorage.setItem(AUTH_TOKEN, login.token);
-        history.push("/");
-      },
     })
   }
+
+  console.log({
+    error,
+    loading,
+    data
+  })
 
   return (
     <React.Fragment>
@@ -81,8 +91,11 @@ export default function Login(props) {
           {
             error && <p>Something went wrong</p>
           }
-          <Button onClick={() => submit()}>Submit</Button>
-        </Form>
+          {
+            loading ? <Spinner color="primary" /> :
+            <Button onClick={() => submit()}>Submit</Button>
+          }
+          </Form>
       </Container>
     </React.Fragment>
   );

@@ -9,15 +9,16 @@ import {
 } from 'react-router-dom';
 import Login from '../pages/Login';
 import List from '../pages/List';
+import { LOGIN_STATUS } from '../constant/app';
 
 function Routes() {
   return (
     <Router>
       <Switch>
-        <PublicRoute exact path="/">
+        <PublicRoute exact path="/login">
           <Login />
         </PublicRoute>
-        <PrivateRoute exact path="/list">
+        <PrivateRoute exact path="/">
           <List />
         </PrivateRoute>
       </Switch>
@@ -29,7 +30,7 @@ export default Routes;
 // Define public Route
 
 function PublicRoute({ children, ...rest }) {
-  const login = localStorage.getItem('login') === 'true';
+  const login = localStorage.getItem(LOGIN_STATUS) === 'true';
   return (
     <Route
       {...rest}
@@ -51,7 +52,7 @@ function PublicRoute({ children, ...rest }) {
 
 // Define Private Route
 function PrivateRoute({ children, ...rest }) {
-  const login = localStorage.getItem('login') === 'true';
+  const login = localStorage.getItem(LOGIN_STATUS) === 'true';
   return (
     <Route
       {...rest}
@@ -61,7 +62,7 @@ function PrivateRoute({ children, ...rest }) {
         ) : (
           <Redirect
             to={{
-              pathname: '/',
+              pathname: '/login',
               state: { from: location },
             }}
           />

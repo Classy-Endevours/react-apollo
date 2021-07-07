@@ -30,7 +30,10 @@ type AuthData {
   token: String!
   tokenExpiration: Int!
 }
-
+type LoginData {
+  email: String!
+  password: String!
+}
 input EventInput {
   title: String!
   description: String!
@@ -53,7 +56,7 @@ type RootMutation {
     createUser(userInput: UserInput): User
     bookEvent(eventId: ID!): Booking!
     cancelBooking(bookingId: ID!): Event!
-    login(email: String!, password: String!): AuthData!
+    login(userInput: UserInput): AuthData
 }
 
 schema {

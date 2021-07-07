@@ -24,7 +24,8 @@ module.exports = {
       throw err;
     }
   },
-  login: async ({ email, password }) => {
+  login: async args => {
+    const { email, password } = args.userInput;
     const user = await User.findOne({ email: email });
     if (!user) {
       throw new Error('User does not exist!');
@@ -40,6 +41,6 @@ module.exports = {
         expiresIn: '1h'
       }
     );
-    return { userId: user.id, token: token, tokenExpiration: 1 };
+    return { userId: user.id, token: token, email: user.email, tokenExpiration: 1 };
   }
 };

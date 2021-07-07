@@ -6,8 +6,9 @@ import {
 export const LOGIN_MUTATION = gql`
 mutation {
   login(userInput: {email: "test@test.com", password: "test"}){
-      email
-      password
+    userId
+    token
+    tokenExpiration
   }
 }
 `;

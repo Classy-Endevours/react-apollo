@@ -7,6 +7,7 @@ import {
   Switch,
   Redirect,
 } from 'react-router-dom';
+import Login from '../pages/Login';
 import List from '../pages/List';
 
 function Routes() {
@@ -14,8 +15,11 @@ function Routes() {
     <Router>
       <Switch>
         <PublicRoute exact path="/">
-          <List />
+          <Login />
         </PublicRoute>
+        <PrivateRoute exact path="/list">
+          <List />
+        </PrivateRoute>
       </Switch>
     </Router>
   );
@@ -33,7 +37,7 @@ function PublicRoute({ children, ...rest }) {
         login ? (
           <Redirect
             to={{
-              pathname: '/Dashboard',
+              pathname: '/list',
               state: { from: location },
             }}
           />

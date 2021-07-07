@@ -8,15 +8,31 @@ import {
 } from "@apollo/client";
 import { onError } from "apollo-link-error";
 import { fromPromise } from "apollo-link";
+import { setContext } from '@apollo/client/link/context';
+import {AUTH_TOKEN} from '../constant/app';
 
-let apolloClient;
+let client;
 const getNewToken = () => {
-  return apolloClient.query({ query: '' }).then((response) => {
+  return client.query({ query: '' }).then((response) => {
     // extract your accessToken from your response data and return it
     const { accessToken } = response.data;
+    localStorage.setItem(AUTH_TOKEN, accessToken);
     return accessToken;
   });
 };
+
+const authLink = setContext((_, { headers }) => {
+  // get the authentication token from local storage if it exists
+  const token = localStorage.getItem(AUTH_TOKEN);
+  console.log({token})
+  // return the headers to the context so httpLink can read them
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  }
+});
 
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
@@ -68,13 +84,14 @@ const errorLink = onError(
 );
 
 const link = from([
+  authLink,
   errorLink,
   new HttpLink({
     uri: "https://rickandmortyapi.com/graphql/",
   })
 ])
 
-const client = new ApolloClient({
+client = new ApolloClient({
   cache: new InMemoryCache(),
   link: link,
 });

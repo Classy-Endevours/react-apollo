@@ -21,13 +21,16 @@ export default function Login(props) {
     email: "",
     password: "",
   });
-  const [login] = useMutation(LOGIN_MUTATION, {
-    variables: formState,
-    onCompleted: ({ login }) => {
-      localStorage.setItem(AUTH_TOKEN, login.token);
-      history.push("/");
-    },
-  });
+  const [login, {error}] = useMutation(LOGIN_MUTATION);
+  const submit = () => {
+    login({
+      variables: formState,
+      onCompleted: ({ login }) => {
+        localStorage.setItem(AUTH_TOKEN, login.token);
+        history.push("/");
+      },
+    })
+  }
 
   return (
     <React.Fragment>
@@ -75,7 +78,10 @@ export default function Login(props) {
               }
             />
           </FormGroup>
-          <Button>Submit</Button>
+          {
+            error && <p>Something went wrong</p>
+          }
+          <Button onClick={() => submit()}>Submit</Button>
         </Form>
       </Container>
     </React.Fragment>

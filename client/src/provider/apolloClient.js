@@ -5,6 +5,7 @@ import {
   ApolloProvider,
   HttpLink,
   from,
+  createHttpLink,
 } from "@apollo/client";
 import { onError } from "apollo-link-error";
 import { fromPromise } from "apollo-link";
@@ -75,7 +76,7 @@ const errorLink = onError(
     if (networkError) {
       console.log(`[Network error]: ${networkError}`);
       // retry automatically
-      return forward(operation);
+      // return forward(operation);
       // if you would also like to retry automatically on
       // network errors, we recommend that you use
       // apollo-link-retry
@@ -83,17 +84,21 @@ const errorLink = onError(
   }
 );
 
+const httpLink = createHttpLink({
+  uri: "http://localhost:3001/graphql/",
+});
+
 const link = from([
   authLink,
   errorLink,
   new HttpLink({
-    uri: "https://rickandmortyapi.com/graphql/",
+    uri: "http://localhost:3000/graphql/",
   })
 ])
 
 client = new ApolloClient({
   cache: new InMemoryCache(),
-  link: link,
+  link: errorLink.concat(authLink.concat(httpLink)),
 });
 
 export default function ApolloCustomProvider({ children }) {

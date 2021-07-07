@@ -14,19 +14,28 @@ import {
   Badge,
   Navbar,
   NavbarBrand,
+  Button,
   NavbarToggler,
   Collapse,
   Nav,
   NavItem,
   NavLink,
 } from "reactstrap";
+import { useHistory } from "react-router";
 
 import { GET_ALL_EVENTS } from "./query";
+import { AUTH_TOKEN, LOGIN_STATUS } from './../../constant/app';
 
 function App() {
   const [collapsed, setCollapsed] = useState(true);
+  const history = useHistory();
   const toggleNavbar = () => setCollapsed(!collapsed);
-
+  const logout = () => {
+    localStorage.removeItem(AUTH_TOKEN)
+    localStorage.removeItem(LOGIN_STATUS)
+    history.replace("/login");
+    
+  }
   // useQuery is a custom hook.
   const { loading, error, data } = useQuery(GET_ALL_EVENTS);
 
@@ -70,6 +79,9 @@ function App() {
               <NavLink target="_blank" href="https://github.com/">
                 My GitHub
               </NavLink>
+            </NavItem>
+            <NavItem>
+              <Button onClick={() => logout()}>Logout</Button>
             </NavItem>
           </Nav>
         </Collapse>

@@ -49,6 +49,7 @@ input UserInput {
 type RootQuery {
     events: [Event!]!
     bookings: [Booking!]!
+    refreshToken(token: String): AuthData
 }
 
 type RootMutation {

@@ -6,46 +6,55 @@ import {
   HttpLink,
   from,
   createHttpLink,
+  gql,
 } from "@apollo/client";
 import { onError } from "apollo-link-error";
 import { fromPromise } from "apollo-link";
-import { setContext } from '@apollo/client/link/context';
-import {AUTH_TOKEN} from '../constant/app';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { setContext } from "@apollo/client/link/context";
+import { AUTH_TOKEN } from "../constant/app";
 
+const query = gql`
+query refreshToken($token: String!) {
+    refreshToken(token: $token) {
+      token
+    }
+  }
+`
 let client;
-const getNewToken = () => {
-  return client.query({ query: '' }).then((response) => {
+const getNewToken = async () => {
+    const tokenData = await client.query({ query, variables: {
+    token: localStorage.getItem(AUTH_TOKEN)
+  } })
     // extract your accessToken from your response data and return it
-    const { accessToken } = response.data;
+    const { accessToken } = tokenData.data;
     localStorage.setItem(AUTH_TOKEN, accessToken);
     return accessToken;
-  });
 };
 
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = localStorage.getItem(AUTH_TOKEN);
-  console.log({token})
   // return the headers to the context so httpLink can read them
   return {
     headers: {
       ...headers,
       authorization: token ? `Bearer ${token}` : "",
-    }
-  }
+    },
+  };
 });
 
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
-    console.log({ graphQLErrors, networkError });
 
     if (graphQLErrors) {
       for (let err of graphQLErrors) {
-        switch (err.extensions.code) {
-          case "UNAUTHENTICATED":
+        toast.error(err.message);
+        switch (err.message) {
+          case "Unauthenticated!":
             // error code is set to UNAUTHENTICATED
             // when AuthenticationError thrown in resolver
-
             // modify the operation context with a new token
             fromPromise(
               getNewToken().catch((error) => {
@@ -67,7 +76,7 @@ const errorLink = onError(
                 // retry the request, returning the new observable
                 return forward(operation);
               });
-              break;
+            break;
           default:
             return null;
         }
@@ -93,8 +102,8 @@ const link = from([
   errorLink,
   new HttpLink({
     uri: "http://localhost:3000/graphql/",
-  })
-])
+  }),
+]);
 
 client = new ApolloClient({
   cache: new InMemoryCache(),
@@ -102,5 +111,10 @@ client = new ApolloClient({
 });
 
 export default function ApolloCustomProvider({ children }) {
-  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+  return (
+    <ApolloProvider client={client}>
+      <ToastContainer />
+      {children}
+    </ApolloProvider>
+  );
 }

@@ -4,8 +4,11 @@ const User = require('../../models/user');
 const { transformEvent } = require('./merge');
 
 module.exports = {
-  events: async () => {
+  events: async (args, req) => {
     try {
+      // if (!req.isAuth) {
+      //   throw new Error('Unauthenticated!');
+      // }
       const events = await Event.find();
       return events.map(event => {
         return transformEvent(event);

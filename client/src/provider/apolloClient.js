@@ -16,21 +16,31 @@ import { setContext } from "@apollo/client/link/context";
 import { AUTH_TOKEN } from "../constant/app";
 
 const query = gql`
-query refreshToken($token: String!) {
+  query refreshToken($token: String!) {
     refreshToken(token: $token) {
       token
     }
   }
-`
+`;
 let client;
 const getNewToken = async () => {
-    const tokenData = await client.query({ query, variables: {
-    token: localStorage.getItem(AUTH_TOKEN)
-  } })
+  try {
+    const { data } = await client.query({
+      query,
+      variables: {
+        token: localStorage.getItem(AUTH_TOKEN),
+      },
+    });
+    console.log("here", data);
     // extract your accessToken from your response data and return it
-    const { accessToken } = tokenData.data;
-    localStorage.setItem(AUTH_TOKEN, accessToken);
-    return accessToken;
+    const { token } = data.refreshToken;
+    localStorage.setItem(AUTH_TOKEN, token);
+    return token;
+  } catch (error) {
+    console.error({error})
+    window.history.replaceState(null, null, "/#/login");
+    window.location.reload( );
+  }
 };
 
 const authLink = setContext((_, { headers }) => {
@@ -47,7 +57,6 @@ const authLink = setContext((_, { headers }) => {
 
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
-
     if (graphQLErrors) {
       for (let err of graphQLErrors) {
         toast.error(err.message);

@@ -15,9 +15,9 @@ function Routes() {
   return (
     <Router>
       <Switch>
-        <PublicRoute exact path="/login">
+        <Route exact path="/login">
           <Login />
-        </PublicRoute>
+        </Route>
         <PrivateRoute exact path="/">
           <List />
         </PrivateRoute>

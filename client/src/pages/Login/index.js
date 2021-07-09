@@ -33,6 +33,8 @@ export default function Login(props) {
   const submit = () => {
     login({
       variables: formState,
+    }).catch((e) => {
+      console.log({e})
     })
   }
 

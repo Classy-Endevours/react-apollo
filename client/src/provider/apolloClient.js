@@ -9,6 +9,7 @@ import {
   gql,
 } from "@apollo/client";
 import { onError } from "apollo-link-error";
+import { TokenRefreshLink } from "apollo-link-token-refresh";
 import { fromPromise } from "apollo-link";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -66,7 +67,7 @@ const errorLink = onError(
             // when AuthenticationError thrown in resolver
             // modify the operation context with a new token
             fromPromise(
-              getNewToken().catch((error) => {
+              getNewToken().catch(() => {
                 // Handle token refresh errors e.g clear stored tokens, redirect to login
                 return;
               })
@@ -101,19 +102,34 @@ const errorLink = onError(
     }
   }
 );
-
 const httpLink = createHttpLink({
   uri: "http://localhost:3001/graphql/",
 });
 
-const link = from([
-  authLink,
-  errorLink,
-  new HttpLink({
-    uri: "http://localhost:3000/graphql/",
-  }),
-]);
+const errL = new TokenRefreshLink({
+  isTokenValidOrUndefined: () => {},
+  fetchAccessToken: () => {
+    return getNewToken()
+  },
+  handleFetch: accessToken => {
+    console.log({accessToken})
+  },
+  handleResponse: (operation, accessTokenField) => response => {
+    // here you can parse response, handle errors, prepare returned token to
+    // further operations
 
+    // returned object should be like this:
+    // {
+    //    access_token: 'token string here'
+    // }
+  },
+  handleError: err => {
+     // full control over handling token fetch Error
+     console.warn('Your refresh token is invalid. Try to relogin');
+     console.error(err);
+
+  }
+})
 client = new ApolloClient({
   cache: new InMemoryCache(),
   link: errorLink.concat(authLink.concat(httpLink)),
